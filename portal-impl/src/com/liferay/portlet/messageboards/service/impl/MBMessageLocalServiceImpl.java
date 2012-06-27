@@ -473,7 +473,7 @@ public class MBMessageLocalServiceImpl extends MBMessageLocalServiceBaseImpl {
 
 		deleteDiscussionSocialActivities(BlogsEntry.class.getName(), message);
 
-		return deleteMessage(message);
+		return deleteMessage(message, MBDiscussion.class.getName());
 	}
 
 	public void deleteDiscussionMessages(String className, long classPK)
@@ -495,7 +495,8 @@ public class MBMessageLocalServiceImpl extends MBMessageLocalServiceBaseImpl {
 				deleteDiscussionSocialActivities(
 					BlogsEntry.class.getName(), message);
 
-				mbThreadLocalService.deleteThread(message.getThreadId());
+				mbThreadLocalService.deleteThread(
+					message.getThreadId(), MBDiscussion.class.getName());
 			}
 
 			mbDiscussionPersistence.remove(discussion);
@@ -518,6 +519,12 @@ public class MBMessageLocalServiceImpl extends MBMessageLocalServiceBaseImpl {
 
 	@Indexable(type = IndexableType.DELETE)
 	public MBMessage deleteMessage(MBMessage message)
+			throws PortalException, SystemException {
+		return deleteMessage(message, MBMessage.class.getName());
+	}
+
+	@Indexable(type = IndexableType.DELETE)
+	public MBMessage deleteMessage(MBMessage message, String className)
 		throws PortalException, SystemException {
 
 		// Attachments
@@ -692,24 +699,22 @@ public class MBMessageLocalServiceImpl extends MBMessageLocalServiceBaseImpl {
 
 		// Asset
 
-		assetEntryLocalService.deleteEntry(
-			MBMessage.class.getName(), message.getMessageId());
+		assetEntryLocalService.deleteEntry(className, message.getMessageId());
 
 		// Expando
 
 		expandoValueLocalService.deleteValues(
-			MBMessage.class.getName(), message.getMessageId());
+			className, message.getMessageId());
 
 		// Ratings
 
-		ratingsStatsLocalService.deleteStats(
-			MBMessage.class.getName(), message.getMessageId());
+		ratingsStatsLocalService.deleteStats(className, message.getMessageId());
 
 		// Resources
 
 		if (!message.isDiscussion()) {
 			resourceLocalService.deleteResource(
-				message.getCompanyId(), MBMessage.class.getName(),
+				message.getCompanyId(), className,
 				ResourceConstants.SCOPE_INDIVIDUAL, message.getMessageId());
 		}
 
